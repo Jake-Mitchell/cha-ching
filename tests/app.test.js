@@ -8,13 +8,63 @@ describe("app", () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.headers["content-type"]).toEqual(
-        expect.stringContaining("json"),
+        expect.stringContaining("json")
       );
       expect(response.body).toEqual(
         expect.objectContaining({
-          test: "hello cha-chingers!",
-        }),
+          test: "Hello World!",
+        })
       );
+    });
+  });
+
+  describe("POST /incomplete-subscriptions", () => {
+    describe("successful request", () => {
+      let response;
+      beforeAll(async () => {
+        response = await request(app)
+          .post("/incomplete-subscriptions")
+          .send({ priceId: process.env.STRIPE_TESTING_STARTER_PRICE_ID });
+      });
+
+      it("returns an 'incomplete' stripe subscription", async () => {
+        expect(response.body).toEqual(
+          expect.objectContaining({
+            object: "subscription",
+            currency: "usd",
+            collection_method: "charge_automatically",
+            current_period_end: expect.any(Number),
+            current_period_start: expect.any(Number),
+            customer: expect.any(String),
+          })
+        );
+      });
+
+      it("has a response code of 200", () => {
+        expect(expect(response.statusCode).toBe(200));
+      });
+    });
+
+    describe("unsuccessful request", () => {
+      const INVALID_PRICE = "invalidPriceId";
+      let response;
+      beforeAll(async () => {
+        response = await request(app)
+          .post("/incomplete-subscriptions")
+          .send({ priceId: INVALID_PRICE });
+      });
+
+      it("returns an error object with a message and status code", () => {
+        expect(response.body).toEqual(
+          expect.objectContaining({
+            error: `No such price: '${INVALID_PRICE}'`,
+            statusCode: 400,
+          })
+        );
+      });
+      it("has a status code of 400", () => {
+        expect(response.statusCode).toEqual(400);
+      });
     });
   });
 
@@ -25,7 +75,7 @@ describe("app", () => {
       expect(response.body).toEqual(
         expect.objectContaining({
           clientSecret: expect.any(String),
-        }),
+        })
       );
     });
 
@@ -55,13 +105,13 @@ describe("app", () => {
             payment_method_options: expect.objectContaining({
               card: expect.anything(),
             }),
-          }),
+          })
         );
       });
 
       it("responds with json headers", async () => {
         expect(response.headers["content-type"]).toEqual(
-          expect.stringContaining("json"),
+          expect.stringContaining("json")
         );
       });
 
@@ -85,7 +135,7 @@ describe("app", () => {
           expect.objectContaining({
             error: "Missing required param: amount.",
             statusCode: 400,
-          }),
+          })
         );
       });
 
@@ -97,7 +147,7 @@ describe("app", () => {
         expect(result.body).toEqual(
           expect.objectContaining({
             error: "Invalid integer: ",
-          }),
+          })
         );
       });
 

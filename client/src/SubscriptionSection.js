@@ -11,13 +11,16 @@ const SubscriptionSection = () => {
   const [selectedCardId, setSelectedCardId] = useState(false);
   const [subscriptionType, setSubscriptionType] = useState("starter");
   const [subscriptionPriceText, setSubscriptionPriceText] = useState("55");
-  const [stripeSubscriptionPrice, setStripeSubscriptionPrice] = useState(5500);
-  const [stripePriceId, setStripePriceId] = useState(process.env.REACT_APP_STARTER_STRIPE_PRICE_ID)
+  const [stripeSubscriptionPrice, setStripeSubscriptionPrice] = useState(5500); // why is stripeSubscriptionPrice never used, but it is set several times?
+  const [stripePriceId, setStripePriceId] = useState(
+    process.env.REACT_APP_STARTER_STRIPE_PRICE_ID
+  );
   const navigate = useNavigate();
 
   useEffect(() => {
-    switch(subscriptionType) {
-      case "starter": 
+    // this switch could potentially be wrapped in it's own helper function and imported, naming suggestion: chooseSubscriptionType(). I could have suggested it be called setSubscriptionType() but since functions beginning with "set" are usually state functions, that could be misleading.
+    switch (subscriptionType) {
+      case "starter":
         setStripePriceId(process.env.REACT_APP_STARTER_STRIPE_PRICE_ID);
         break;
       case "intermediate":
@@ -25,24 +28,25 @@ const SubscriptionSection = () => {
         break;
       case "advanced":
         setStripePriceId(process.env.REACT_APP_ADVANCED_STRIPE_PRICE_ID);
-      break;
+        break;
       default:
-        setStripePriceId(process.env.REACT_APP_STARTER_STRIPE_PRICE_ID)
+        setStripePriceId(process.env.REACT_APP_STARTER_STRIPE_PRICE_ID);
     }
-  },[subscriptionType])
+  }, [subscriptionType]);
 
   const handleSubmit = () => {
+    // this network call with fetch could be wrapped into it's own custom hook for example useStripeSubscription then when we update a subscription it could also be a hook named useUpdateStripeSubscription.
     const requestOptions = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        priceId: stripePriceId
+        priceId: stripePriceId,
       }),
     };
 
     fetch(
-      `${process.env.REACT_APP_API_BASE_URL}/create-incomplete-subscription`,
-      requestOptions,
+      `${process.env.REACT_APP_API_BASE_URL}/incomplete-subscriptions`,
+      requestOptions
     )
       .then((res) => res.json())
       .then((data) => {
@@ -55,7 +59,7 @@ const SubscriptionSection = () => {
         });
       })
       .catch((err) => console.log("error creating product:", err));
-  }
+  };
 
   return (
     <div className="subscriptionSectionBackground">
@@ -68,18 +72,19 @@ const SubscriptionSection = () => {
             subscriptionName="Starter"
             price={"55"}
             subscriptionDetails={[
+              // this array of strings could potentially be defined as a variable and imported to save some room, we have this same pattern many times on this page.
               "Group classes with apprentice and intermediate instructors",
               "Weekly instructional videos",
               "Exclusive access to our online community of ikebana enthusiastsr",
               "Bi-weekly flower delivery",
               "Includes initial starter kit (kenzan, vase, scissors)",
-              "Small group sessions with other advancing peers"
+              "Small group sessions with other advancing peers",
             ]}
             onClick={() => {
-              setSelectedCardId("starter")
-              setSubscriptionType("starter")
-              setSubscriptionPriceText("55")
-              setStripeSubscriptionPrice(5500)
+              setSelectedCardId("starter");
+              setSubscriptionType("starter");
+              setSubscriptionPriceText("55");
+              setStripeSubscriptionPrice(5500);
             }}
           />
           <SubscriptionDetailsCard
@@ -88,6 +93,7 @@ const SubscriptionSection = () => {
             subscriptionName="Intermediate"
             price={"115"}
             subscriptionDetails={[
+              // this array could be a variable
               "Exclusive access to our online community of ikebana enthusiasts",
               "Weekly step-by-step video tutorials and instructional pamphlets",
               "Ikebana maintenance tips",
@@ -95,10 +101,10 @@ const SubscriptionSection = () => {
               "Syllabus of recommended readings",
             ]}
             onClick={() => {
-              setSelectedCardId("intermediate")
-              setSubscriptionType("intermediate")
-              setSubscriptionPriceText("115")
-              setStripeSubscriptionPrice(11500)
+              setSelectedCardId("intermediate");
+              setSubscriptionType("intermediate");
+              setSubscriptionPriceText("115");
+              setStripeSubscriptionPrice(11500);
             }}
           />
           <SubscriptionDetailsCard
@@ -107,18 +113,19 @@ const SubscriptionSection = () => {
             subscriptionName="Advanced"
             price={"205"}
             subscriptionDetails={[
+              // this array could be a variable
               "Zoom one-on-one sessions with a Master",
               "Monthly instructional videos, advanced techniques from a Master",
               "Invitations to annual ikebana events and competitions",
               "Weekly flower delivery and Seasonal themed vases",
               "Exclusive access to our online community of ikebana enthusiasts",
-              "Includes everything from starter and intermediate"
+              "Includes everything from starter and intermediate",
             ]}
             onClick={() => {
-              setSelectedCardId("advanced")
-              setSubscriptionType("advanced")
-              setSubscriptionPriceText("205")
-              setStripeSubscriptionPrice(20500)
+              setSelectedCardId("advanced");
+              setSubscriptionType("advanced");
+              setSubscriptionPriceText("205");
+              setStripeSubscriptionPrice(20500);
             }}
           />
         </div>

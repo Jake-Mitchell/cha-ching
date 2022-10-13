@@ -9,25 +9,32 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
-app.get("/", (req, res) => {
-  res.json({ test: "hello cha-chingers!" });
+app.get("/", (_req, res) => {
+  res.json({ test: "Hello World!" });
 });
 
-app.post("/create-incomplete-subscription", async (req, res) => {
+app.post("/incomplete-subscriptions", async (req, res) => {
   const customer = await stripe.customers.create({});
 
-  const subscription = await stripe.subscriptions.create({
-    customer: customer.id,
-    items: [{ price: req.body.priceId }],
-    payment_behavior: "default_incomplete",
-    payment_settings: { save_default_payment_method: "on_subscription" },
-    expand: ["latest_invoice.payment_intent"],
-  });
+  const subscriptionResult = await stripe.subscriptions
+    .create({
+      customer: customer.id,
+      items: [{ price: req.body.priceId }],
+      payment_behavior: "default_incomplete",
+      payment_settings: { save_default_payment_method: "on_subscription" },
+      expand: ["latest_invoice.payment_intent"],
+    })
+    .catch((err) => {
+      const errorStatusCode = err.statusCode;
+      const errorMessage = err.raw.message;
+      return { error: errorMessage, statusCode: errorStatusCode };
+    });
 
-  res.json(subscription);
+  res.statusCode = subscriptionResult.error ? 400 : 200;
+  res.json(subscriptionResult);
 });
 
-app.get("/subscriptions", async (req, res) => {
+app.get("/subscriptions", async (_req, res) => {
   const product = await stripe.products.create({
     name: "Jelly Bean",
   });
@@ -69,7 +76,7 @@ app.get("/subscriptions", async (req, res) => {
   res.json(subscription);
 });
 
-app.get("/payment-intent", async (req, res) => {
+app.get("/payment-intent", async (_req, res) => {
   const paymentIntentResult = await stripe.paymentIntents.create({
     amount: 2000,
     currency: "usd",
@@ -77,7 +84,7 @@ app.get("/payment-intent", async (req, res) => {
   res.json({ clientSecret: paymentIntentResult.client_secret });
 });
 
-app.post("/payment-intent", async (req, res, next) => {
+app.post("/payment-intent", async (req, res) => {
   const paymentIntentResult = await stripe.paymentIntents
     .create({
       amount: req.body.amount,
@@ -93,29 +100,7 @@ app.post("/payment-intent", async (req, res, next) => {
   res.json(paymentIntentResult);
 });
 
-// how do I get enforce signature to take in enforceSignature(_signatureObject, req, res, next, errorStacker)
-const enforceSignature = (req, res, next) => {
-  console.log(
-    "WIP, continue investigation into error handling with middleware",
-  );
-  next();
-  // // if(req.headers.type !== json) error handling call an errorStack() function or something
-  // if (typeof req.body.amount !== "object") {
-  //   throw new Error(
-  //     "oops you didnt pass me an obj, Im allergic to anything else!"
-  //   ) // throw or just run a response object!
-  //   next()
-  // }
-  // if (typeof req.body.amount !== "integer") {
-  //   throw new Error(
-  //     "oops, Im gonna need an integer pal! Did you pass middleschool geometry ?"
-  //   )
-  //   // throw or just run a response object ?
-  //   next()
-  // }
-};
-
-app.get("/stripe-client-secret", enforceSignature, async (req, res) => {
+app.get("/stripe-client-secret", async (_req, res) => {
   const paymentIntentResult = await stripe.paymentIntents
     .create({
       amount: 1000,
@@ -136,7 +121,7 @@ app.get("/stripe-client-secret", enforceSignature, async (req, res) => {
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Listening on port ${port}`);
 });
 
 module.exports = app;
