@@ -36,7 +36,7 @@ app.post("/incomplete-subscriptions", async (req, res) => {
 
 app.get("/subscriptions", async (_req, res) => {
   const product = await stripe.products.create({
-    name: "Jelly Bean",
+    name: "Test product",
   });
 
   const price = await stripe.prices.create({
@@ -59,8 +59,8 @@ app.get("/subscriptions", async (_req, res) => {
   });
 
   const customer = await stripe.customers.create({
-    email: "jojobob@example.com",
-    name: "Jojo Bob",
+    email: "test@example.com",
+    name: "Jane Doe",
     payment_method: paymentMethod.id,
   });
 
@@ -76,31 +76,7 @@ app.get("/subscriptions", async (_req, res) => {
   res.json(subscription);
 });
 
-app.get("/payment-intent", async (_req, res) => {
-  const paymentIntentResult = await stripe.paymentIntents.create({
-    amount: 2000,
-    currency: "usd",
-  });
-  res.json({ clientSecret: paymentIntentResult.client_secret });
-});
-
-app.post("/payment-intent", async (req, res) => {
-  const paymentIntentResult = await stripe.paymentIntents
-    .create({
-      amount: req.body.amount,
-      currency: "usd",
-    })
-    .catch((err) => {
-      const errorStatusCode = err.statusCode;
-      const errorMessage = err.raw.message;
-      return { error: errorMessage, statusCode: errorStatusCode };
-    });
-
-  res.statusCode = paymentIntentResult.error ? 400 : 200;
-  res.json(paymentIntentResult);
-});
-
-app.get("/stripe-client-secret", async (_req, res) => {
+app.get("/stripe-client-secrets", async (_req, res) => {
   const paymentIntentResult = await stripe.paymentIntents
     .create({
       amount: 1000,
